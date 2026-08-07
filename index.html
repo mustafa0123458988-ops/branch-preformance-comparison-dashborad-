@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Branch Dashboard</title>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<style>
+		:root{--brand:#165a8a;--accent:#f59e0b;--bg:#f4f6f8;--muted:#6b7280}
+		*{box-sizing:border-box}
+		body{font-family:Inter,Arial,Helvetica,sans-serif;margin:0;background:var(--bg);color:#0f172a}
+		header{background:var(--brand);color:#fff;padding:18px 12px;text-align:center}
+		header h1{margin:0;font-size:1.2rem}
+		.wrap{max-width:1100px;margin:20px auto;padding:16px}
+		.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:12px}
+		.card,.panel{background:#fff;padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,23,0.06)}
+		.card b{display:block;color:var(--muted);margin-bottom:6px}
+		.card h3{margin:0;font-size:1.4rem}
+		form.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+		label{display:none}
+		input[type="text"],input[type="number"],input[type="search"]{padding:8px;border:1px solid #e6eef6;border-radius:8px;min-width:160px}
+		.controls{display:flex;gap:8px;flex-wrap:wrap}
+		button{padding:9px 14px;background:var(--brand);color:#fff;border:0;border-radius:8px;cursor:pointer}
+		button.secondary{background:#fff;color:var(--brand);border:1px solid #e6eef6}
+		button:focus{outline:3px solid rgba(22,90,138,0.18)}
+		table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.95rem}
+		th,td{border:1px solid #eef2f6;padding:10px;text-align:left}
+		th{background:#0f172a;color:#fff}
+		td.actions{width:160px;text-align:right}
+		.small{font-size:0.85rem;color:var(--muted)}
+		@media (max-width:640px){.controls input{flex:1 1 100%}.cards{grid-template-columns:repeat(2,1fr)}}
+	</style>
+</head>
+<body>
+	<header>
+		<h1>Branch Performance Comparison Dashboard</h1>
+	</header>
+	<main class="wrap">
+		<section class="cards" aria-label="Summary metrics">
+			<div class="card"><b>Total Sales</b><h3 id="sales" aria-live="polite">0</h3></div>
+			<div class="card"><b>Total Profit</b><h3 id="profit" aria-live="polite">0</h3></div>
+			<div class="card"><b>Customers</b><h3 id="cust" aria-live="polite">0</h3></div>
+			<div class="card"><b>Best Branch</b><h3 id="best" aria-live="polite">-</h3></div>
+		</section>
+
+		<section class="panel" aria-labelledby="add-heading">
+			<h2 id="add-heading">Add / Edit Branch</h2>
+			<form id="branchForm" class="row" onsubmit="event.preventDefault();saveBranch();">
+				<input id="name" type="text" placeholder="Branch name" aria-label="Branch name">
+				<input id="salesInput" type="number" placeholder="Sales" aria-label="Sales amount">
+				<input id="profitInput" type="number" placeholder="Profit" aria-label="Profit amount">
+				<input id="custInput" type="number" placeholder="Customers" aria-label="Customers count">
+				<div class="controls">
+					<button id="saveBtn" type="submit">Add</button>
+					<button type="button" class="secondary" onclick="resetForm()">Reset</button>
+					<button type="button" class="secondary" onclick="exportCSV()">Export CSV</button>
+				</div>
+			</form>
+			<div style="margin-top:8px"><input id="search" type="search" placeholder="Search branches" oninput="render()" aria-label="Search branches"></div>
+		</section>
+
+		<section class="panel" aria-labelledby="list-heading">
+			<h2 id="list-heading">Branches</h2>
+			<div class="small">Click a row to edit, or use actions on the right.</div>
+			<table aria-describedby="list-heading">
+				<thead>
+					<tr><th scope="col">Branch</th><th scope="col">Sales</th><th scope="col">Profit</th><th scope="col">Customers</th><th scope="col">Actions</th></tr>
+				</thead>
+				<tbody id="tb"></tbody>
+			</table>
+		</section>
+
+		<section class="panel" aria-labelledby="chart-heading">
+			<h2 id="chart-heading">Sales & Profit</h2>
+			<canvas id="ch" aria-label="Sales and profit chart" role="img"></canvas>
+		</section>
+	</main>
+
+	<script>
+		const nameEl = document.getElementById('name');
+		const salesEl = document.getElementById('salesInput');
+		const profitEl = document.getElementById('profitInput');
+		const custEl = document.getElementById('custInput');
+		const tb = document.getElementById('tb');
+		const ch = document.getElementById('ch');
+		const search = document.getElementById('search');
+		const saveBtn = document.getElementById('saveBtn');
+
+		let data = JSON.parse(localStorage.getItem('branches') || '[]');
+		let chart; let editIndex = -1;
+
+		function saveToStorage(){ localStorage.setItem('branches', JSON.stringify(data)); }
+
+		function saveBranch(){
+			const b = { name: nameEl.value.trim(), sales: Number(salesEl.value) || 0, profit: Number(profitEl.value) || 0, customers: Number(custEl.value) || 0 };
+			if(!b.name){ alert('Please enter a branch name'); nameEl.focus(); return }
+			if(editIndex >= 0){ data[editIndex] = b; editIndex = -1; saveBtn.textContent = 'Add' }
+			else { data.push(b) }
+			resetForm(); saveToStorage(); render();
+		}
+
+		function resetForm(){ nameEl.value = ''; salesEl.value = ''; profitEl.value = ''; custEl.value = ''; editIndex = -1; saveBtn.textContent = 'Add' }
+
+		function confirmDel(i){ if(confirm('Delete this branch?')){ data.splice(i,1); saveToStorage(); render() } }
+
+		function edit(i){ const b = data[i]; nameEl.value = b.name; salesEl.value = b.sales; profitEl.value = b.profit; custEl.value = b.customers; editIndex = i; saveBtn.textContent = 'Update'; nameEl.focus(); }
+
+		function exportCSV(){ if(!data.length){ alert('No data to export'); return }
+			const rows = [['Branch','Sales','Profit','Customers'], ...data.map(d=>[d.name,d.sales,d.profit,d.customers])];
+			const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+			const blob = new Blob([csv], {type:'text/csv'});
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a'); a.href = url; a.download = 'branches.csv'; a.click(); URL.revokeObjectURL(url);
+		}
+
+		function format(n){ return Number(n).toLocaleString() }
+
+		function render(){
+			const q = (search.value || '').toLowerCase();
+			let rows = ''; let ts = 0, tp = 0, tc = 0, best = '-'; let mx = -Infinity;
+			data.forEach((b,i)=>{ ts += b.sales; tp += b.profit; tc += b.customers; if(b.sales > mx){ mx = b.sales; best = b.name }
+				if(b.name.toLowerCase().includes(q)){
+					rows += `<tr onclick="edit(${i})" style="cursor:pointer"><td>${escapeHtml(b.name)}</td><td>${format(b.sales)}</td><td>${format(b.profit)}</td><td>${format(b.customers)}</td><td class=\"actions\"><button onclick=\"event.stopPropagation();edit(${i})\">Edit</button> <button onclick=\"event.stopPropagation();confirmDel(${i})\">Delete</button></td></tr>` }
+			});
+			tb.innerHTML = rows || '<tr><td colspan="5" style="text-align:center;color:var(--muted)">No branches found</td></tr>';
+			document.getElementById('sales').textContent = format(ts);
+			document.getElementById('profit').textContent = format(tp);
+			document.getElementById('cust').textContent = format(tc);
+			document.getElementById('best').textContent = best;
+
+			// Chart
+			const labels = data.map(d=>d.name);
+			const salesData = data.map(d=>d.sales);
+			const profitData = data.map(d=>d.profit);
+			if(chart) chart.destroy();
+			chart = new Chart(ch, {
+				type: 'bar',
+				data: { labels, datasets: [ { label: 'Sales', data: salesData, backgroundColor: 'rgba(22,90,138,0.9)' }, { label: 'Profit', data: profitData, backgroundColor: 'rgba(245,158,11,0.9)' } ] },
+				options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+			});
+			ch.style.height = '320px';
+		}
+
+		function escapeHtml(s){ return String(s).replace(/[&<>\"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) }
+
+		render();
+	</script>
+</body>
+</html>
