@@ -46,10 +46,10 @@
 		<section class="panel" aria-labelledby="add-heading">
 			<h2 id="add-heading">Add / Edit Branch</h2>
 			<form id="branchForm" class="row" onsubmit="event.preventDefault();saveBranch();">
-				<input id="name" type="text" placeholder="Branch name" aria-label="Branch name">
-				<input id="salesInput" type="number" placeholder="Sales" aria-label="Sales amount">
-				<input id="profitInput" type="number" placeholder="Profit" aria-label="Profit amount">
-				<input id="custInput" type="number" placeholder="Customers" aria-label="Customers count">
+				<input id="name" type="text" placeholder="Branch name" aria-label="Branch name" required maxlength="80">
+				<input id="salesInput" type="number" placeholder="Sales" aria-label="Sales amount" min="0" step="0.01" required>
+				<input id="profitInput" type="number" placeholder="Profit" aria-label="Profit amount" step="0.01" required>
+				<input id="custInput" type="number" placeholder="Customers" aria-label="Customers count" min="0" step="1" required>
 				<div class="controls">
 					<button id="saveBtn" type="submit">Add</button>
 					<button type="button" class="secondary" onclick="resetForm()">Reset</button>
@@ -86,14 +86,27 @@
 		const search = document.getElementById('search');
 		const saveBtn = document.getElementById('saveBtn');
 
-		let data = JSON.parse(localStorage.getItem('branches') || '[]');
+		let data = loadData();
 		let chart; let editIndex = -1;
 
 		function saveToStorage(){ localStorage.setItem('branches', JSON.stringify(data)); }
 
+		function loadData(){
+			try{
+				const saved = JSON.parse(localStorage.getItem('branches') || '[]');
+				return Array.isArray(saved) ? saved.filter(b=>b && typeof b.name === 'string') : [];
+			}catch(error){
+				return [];
+			}
+		}
+
 		function saveBranch(){
-			const b = { name: nameEl.value.trim(), sales: Number(salesEl.value) || 0, profit: Number(profitEl.value) || 0, customers: Number(custEl.value) || 0 };
+			const b = { name: nameEl.value.trim(), sales: Number(salesEl.value), profit: Number(profitEl.value), customers: Number(custEl.value) };
 			if(!b.name){ alert('Please enter a branch name'); nameEl.focus(); return }
+			if(!Number.isFinite(b.sales) || b.sales < 0 || !Number.isFinite(b.profit) || !Number.isFinite(b.customers) || b.customers < 0){
+				alert('Please enter valid numbers for sales, profit, and customers');
+				return;
+			}
 			if(editIndex >= 0){ data[editIndex] = b; editIndex = -1; saveBtn.textContent = 'Add' }
 			else { data.push(b) }
 			resetForm(); saveToStorage(); render();
