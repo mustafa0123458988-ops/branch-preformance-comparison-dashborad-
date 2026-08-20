@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Branch Performance | Command Center</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<style>
+		:root{--ink:#18222b;--muted:#6d7a82;--paper:#f7f8f4;--surface:#fff;--line:#e3e8e3;--teal:#087f78;--teal-dark:#075f5a;--coral:#e97457;--gold:#e7aa45;--shadow:0 16px 42px rgba(24,34,43,.08)}
+		*{box-sizing:border-box}
+		body{margin:0;background:var(--paper);color:var(--ink);font-family:"DM Sans",sans-serif}
+		body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.35;background-image:linear-gradient(rgba(8,127,120,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(8,127,120,.035) 1px,transparent 1px);background-size:32px 32px;mask-image:linear-gradient(to bottom,black,transparent 75%)}
+		.shell{position:relative;max-width:1240px;margin:auto;padding:34px 28px 52px}
+		header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:30px;animation:rise .65s ease both}
+		.eyebrow{margin:0 0 8px;color:var(--teal);font-size:.73rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+		h1,h2,h3{font-family:"Space Grotesk",sans-serif}
+		h1{margin:0;font-size:clamp(2rem,4vw,3.45rem);line-height:1;letter-spacing:0}
+		.header-note{max-width:280px;margin:0;color:var(--muted);font-size:.9rem;line-height:1.5;text-align:right}
+		.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+		.metric,.panel{background:rgba(255,255,255,.9);border:1px solid var(--line);box-shadow:var(--shadow)}
+		.metric{position:relative;overflow:hidden;padding:22px;border-radius:6px;animation:rise .65s ease both}
+		.metric:nth-child(2){animation-delay:.08s}.metric:nth-child(3){animation-delay:.16s}.metric:nth-child(4){animation-delay:.24s}
+		.metric:after{content:"";position:absolute;right:-24px;bottom:-32px;width:92px;height:92px;border:18px solid rgba(8,127,120,.08);border-radius:50%}
+		.metric-label{display:block;color:var(--muted);font-size:.78rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+		.metric-value{display:block;margin-top:13px;font-family:"Space Grotesk",sans-serif;font-size:1.75rem}
+		.content{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(320px,.8fr);gap:18px}
+		.panel{border-radius:6px;padding:24px;animation:rise .7s .25s ease both}
+		.panel h2{margin:0 0 5px;font-size:1.25rem}
+		.panel-intro{margin:0 0 20px;color:var(--muted);font-size:.88rem}
+		.form-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:10px}
+		.field{display:flex;flex-direction:column;gap:7px}.field label{color:var(--muted);font-size:.75rem;font-weight:600}
+		input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:4px;background:#fcfdfa;color:var(--ink);font:inherit;outline:none;transition:border-color .2s,box-shadow .2s}
+		input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(8,127,120,.12)}
+		.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}
+		button{border:1px solid transparent;border-radius:4px;padding:10px 15px;background:var(--teal);color:#fff;font:600 .85rem "DM Sans",sans-serif;cursor:pointer;transition:transform .2s,background .2s,box-shadow .2s}
+		button:hover{background:var(--teal-dark);box-shadow:0 8px 16px rgba(8,127,120,.18);transform:translateY(-1px)}
+		button.secondary{border-color:var(--line);background:var(--surface);color:var(--ink)}button.secondary:hover{background:#f1f5f1;box-shadow:none}
+		.search{margin-top:21px}.search input{background:var(--paper)}
+		.table-wrap{overflow-x:auto}.table-wrap table{width:100%;border-collapse:collapse;margin-top:14px;min-width:590px}
+		th{padding:11px 10px;border-bottom:2px solid var(--ink);color:var(--muted);font-size:.7rem;letter-spacing:.07em;text-align:left;text-transform:uppercase}
+		td{padding:14px 10px;border-bottom:1px solid var(--line);font-size:.88rem}tbody tr{cursor:pointer;transition:background .2s,transform .2s;animation:rowIn .35s ease both}tbody tr:hover{background:#f2f8f5}td.actions-cell{text-align:right;white-space:nowrap}td.actions-cell button{padding:6px 9px;font-size:.76rem}td.actions-cell button.delete{background:transparent;color:var(--coral);border-color:transparent;box-shadow:none}
+		.chart-panel{min-height:390px}.chart-wrap{height:290px;margin-top:24px}.empty{text-align:center;color:var(--muted);padding:28px 10px}
+		.status{min-height:20px;margin:13px 0 0;color:var(--coral);font-size:.8rem}.chart-message{padding:40px 10px;color:var(--muted);text-align:center}
+		@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}@keyframes rowIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+		@media (max-width:900px){.content{grid-template-columns:1fr}.chart-panel{min-height:0}.metrics{grid-template-columns:repeat(2,1fr)}}
+		@media (max-width:620px){.shell{padding:24px 16px 36px}header{display:block}.header-note{margin-top:14px;text-align:left}.form-grid{grid-template-columns:1fr 1fr}.form-grid .field:first-child{grid-column:1/-1}.metrics{gap:9px}.metric{padding:16px}.metric-value{font-size:1.35rem}.panel{padding:18px}}
+	</style>
+</head>
+<body>
+	<main class="shell">
+		<header>
+			<div><p class="eyebrow">Operations / Live view</p><h1>Branch performance</h1></div>
+			<p class="header-note">A clear snapshot of sales, profit, and customer activity across every location.</p>
+		</header>
+
+		<section class="metrics" aria-label="Summary metrics">
+			<article class="metric"><span class="metric-label">Total sales</span><strong class="metric-value" id="sales">0</strong></article>
+			<article class="metric"><span class="metric-label">Total profit</span><strong class="metric-value" id="profit">0</strong></article>
+			<article class="metric"><span class="metric-label">Customers</span><strong class="metric-value" id="cust">0</strong></article>
+			<article class="metric"><span class="metric-label">Top branch</span><strong class="metric-value" id="best">-</strong></article>
+		</section>
+
+		<div class="content">
+			<section class="panel" aria-labelledby="branch-heading">
+				<h2 id="branch-heading">Branch directory</h2><p class="panel-intro">Add a location or select a row to update its performance.</p>
+				<form id="branchForm">
+					<div class="form-grid">
+						<div class="field"><label for="name">Branch name</label><input id="name" type="text" placeholder="e.g. Downtown" maxlength="80" required></div>
+						<div class="field"><label for="salesInput">Sales</label><input id="salesInput" type="number" placeholder="0" min="0" step="0.01" required></div>
+						<div class="field"><label for="profitInput">Profit</label><input id="profitInput" type="number" placeholder="0" step="0.01" required></div>
+						<div class="field"><label for="custInput">Customers</label><input id="custInput" type="number" placeholder="0" min="0" step="1" required></div>
+					</div>
+					<div class="actions"><button id="saveBtn" type="submit">Add branch</button><button id="resetBtn" class="secondary" type="button">Reset</button><button id="exportBtn" class="secondary" type="button">Export CSV</button></div>
+					<p class="status" id="status" role="status" aria-live="polite"></p>
+				</form>
+				<div class="search"><input id="search" type="search" placeholder="Search by branch name" aria-label="Search branches"></div>
+				<div class="table-wrap"><table><thead><tr><th>Branch</th><th>Sales</th><th>Profit</th><th>Customers</th><th>Actions</th></tr></thead><tbody id="tb"></tbody></table></div>
+			</section>
+
+			<section class="panel chart-panel" aria-labelledby="chart-heading"><h2 id="chart-heading">Performance pulse</h2><p class="panel-intro">Sales and profit by location.</p><div class="chart-wrap"><canvas id="ch" aria-label="Sales and profit chart" role="img"></canvas><p class="chart-message" id="chartMessage" hidden>Charts need an internet connection to load.</p></div></section>
+		</div>
+	</main>
+	<script>
+		const $=id=>document.getElementById(id),nameEl=$('name'),salesEl=$('salesInput'),profitEl=$('profitInput'),custEl=$('custInput'),tb=$('tb'),search=$('search'),saveBtn=$('saveBtn'),status=$('status');
+		let data=loadData(),chart=null,editIndex=-1;
+		function toNumber(value){const number=Number(value);return Number.isFinite(number)?number:0}
+		function loadData(){try{const saved=JSON.parse(localStorage.getItem('branches')||'[]');return Array.isArray(saved)?saved.filter(b=>b&&typeof b.name==='string').map(b=>({name:b.name,sales:toNumber(b.sales),profit:toNumber(b.profit),customers:toNumber(b.customers)})):[]}catch(error){return []}}
+		function saveToStorage(){localStorage.setItem('branches',JSON.stringify(data))}
+		function setStatus(message=''){status.textContent=message}
+		function resetForm(){nameEl.value='';salesEl.value='';profitEl.value='';custEl.value='';editIndex=-1;saveBtn.textContent='Add branch';setStatus('');nameEl.focus()}
+		function saveBranch(event){event.preventDefault();const branch={name:nameEl.value.trim(),sales:Number(salesEl.value),profit:Number(profitEl.value),customers:Number(custEl.value)};if(!branch.name||!Number.isFinite(branch.sales)||branch.sales<0||!Number.isFinite(branch.profit)||!Number.isFinite(branch.customers)||branch.customers<0){setStatus('Enter a name and valid non-negative values.');return}if(editIndex>=0){data[editIndex]=branch;setStatus('Branch updated.')}else{data.push(branch);setStatus('Branch added.')}resetForm();saveToStorage();render()}
+		function edit(index){const branch=data[index];nameEl.value=branch.name;salesEl.value=branch.sales;profitEl.value=branch.profit;custEl.value=branch.customers;editIndex=index;saveBtn.textContent='Update branch';nameEl.focus();setStatus('Editing '+branch.name)}
+		function confirmDel(index){if(confirm('Delete this branch?')){data.splice(index,1);saveToStorage();render();setStatus('Branch deleted.')}}
+		function exportCSV(){if(!data.length){setStatus('Add a branch before exporting.');return}const rows=[['Branch','Sales','Profit','Customers'],...data.map(b=>[b.name,b.sales,b.profit,b.customers])];const csv=rows.map(row=>row.map(value=>'"'+String(value).replace(/"/g,'""')+'"').join(',')).join('\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));const link=document.createElement('a');link.href=url;link.download='branches.csv';link.click();URL.revokeObjectURL(url)}
+		function format(number){return Number(number).toLocaleString()}
+		function escapeHtml(value){return String(value).replace(/[&<>\"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]))}
+		function render(){const query=search.value.trim().toLowerCase();let sales=0,profit=0,customers=0,best='-',max=-Infinity;data.forEach(branch=>{sales+=branch.sales;profit+=branch.profit;customers+=branch.customers;if(branch.sales>max){max=branch.sales;best=branch.name}});$('sales').textContent=format(sales);$('profit').textContent=format(profit);$('cust').textContent=format(customers);$('best').textContent=best;const visible=data.map((branch,index)=>({branch,index})).filter(item=>item.branch.name.toLowerCase().includes(query));tb.innerHTML=visible.length?visible.map((item,position)=>{const branch=item.branch;return `<tr style="animation-delay:${position*35}ms" onclick="edit(${item.index})"><td><strong>${escapeHtml(branch.name)}</strong></td><td>${format(branch.sales)}</td><td>${format(branch.profit)}</td><td>${format(branch.customers)}</td><td class="actions-cell"><button onclick="event.stopPropagation();edit(${item.index})">Edit</button> <button class="delete" onclick="event.stopPropagation();confirmDel(${item.index})">Delete</button></td></tr>`}).join(''):'<tr><td class="empty" colspan="5">No branches found</td></tr>';renderChart()}
+		function renderChart(){if(chart){chart.destroy();chart=null}if(typeof Chart==='undefined'){$('ch').hidden=true;$('chartMessage').hidden=false;return}$('ch').hidden=false;$('chartMessage').hidden=true;chart=new Chart($('ch'),{type:'bar',data:{labels:data.map(branch=>branch.name),datasets:[{label:'Sales',data:data.map(branch=>branch.sales),backgroundColor:'#087f78',borderRadius:3},{label:'Profit',data:data.map(branch=>branch.profit),backgroundColor:'#e7aa45',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:850,easing:'easeOutQuart'},plugins:{legend:{labels:{usePointStyle:true,boxWidth:8,font:{family:'DM Sans'}}}},scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans'}}},y:{beginAtZero:true,grid:{color:'#e3e8e3'},ticks:{font:{family:'DM Sans'}}}}}})}
+		$('branchForm').addEventListener('submit',saveBranch);$('resetBtn').addEventListener('click',resetForm);$('exportBtn').addEventListener('click',exportCSV);search.addEventListener('input',render);render();
+	</script>
+</body>
+</html>
