@@ -1,4 +1,11 @@
-# branch-preformance-comparison-dashborad-
+
+# Branch Performance Comparison Dashboard
+
+![Mustafa logo](mustafa-logo.svg)
+
+## Project Preview
+
+![Dashboard screenshot](images/dashboard.png)
 its a program that compare different branches within a company on the basis of some matric  
 # Branch Performance Comparison Dashboard
 
@@ -14,6 +21,10 @@ A simple browser-based dashboard for comparing company branches using sales, pro
 - Automatically save data in browser local storage
 - Export branch data as a CSV file
 - Responsive layout for desktop and mobile
+![Dashboard screenshot](images/dashboard.png)
+
+![Branch chart](images/branch-chart.png)
+
 
 ## How to Run
 
