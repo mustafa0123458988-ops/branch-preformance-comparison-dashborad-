@@ -34,53 +34,7 @@ A simple browser-based dashboard for comparing company branches using sales, pro
 2. Open `index.html` in a web browser.
 3. Add branch information using the form.
 
-No server or installation is required.
-# Branch Performance Comparison Dashboard
 
-![Mustafa logo](mustafa-logo.svg)
-
-A browser-based dashboard for comparing company branches using sales, profit, and customer metrics.
-
-## Preview
-
-Add screenshots to the `images` folder and display them here:
-
-![Dashboard screenshot](images/dashboard.png)
-
-![Branch chart](images/branch-chart.png)
-
-![Second branch chart](images/branch-chart2.png)
-
-![Project screenshot](images/Screenshot%202026-08-21%20042638.png)
-
-Example project structure:
-
-```text
-myproject/
-|-- images/
-|   |-- dashboard.png
-|   |-- branch-chart.jpg
-|-- README.md
-|-- index.html
-|-- test2.html
-|-- test3.html
-|-- test4.html
-|-- test5.html
-|-- test6.html
-|-- mustafa-logo.svg
-```
-
-## Features
-
-- Add, edit, and delete branch records
-- Search for branches by name
-- View total sales, profit, and customers
-- Identify the branch with the highest sales
-- Compare sales and profit with a chart
-- Save data in browser local storage
-- Export branch data as a CSV file
-- Use the responsive dashboard on desktop or mobile
-- Switch between light and dark mode in the latest dashboard version
 
 ## How to Run
 
@@ -88,7 +42,7 @@ No installation or server is required.
 
 1. Download or clone this repository.
 2. Open the project folder in VS Code.
-3. Open `index.html` or `test6.html` in a web browser.
+3. Open  `test6.html` in a web browser.
 4. Add branch information using the form.
 
 You can also open a page from PowerShell:
@@ -107,40 +61,7 @@ Start-Process .\index.html
 6. Use the search box to find a branch.
 7. Select **Export CSV** to download the data.
 
-## Adding Photos
 
-Create an `images` folder beside this README file, then place your photos inside it:
-
-```text
-myproject/
-|-- images/
-|   |-- dashboard.png
-|   |-- branch-chart.jpg
-```
-
-Add a photo to this README with:
-
-```md
-![Description of the photo](images/dashboard.png)
-```
-
-Supported examples include `.png`, `.jpg`, and `.webp` files. Use short filenames without spaces, such as `dashboard-preview.png`.
-
-## Adding Photos with Git
-
-After placing a photo in the `images` folder, run:
-
-```powershell
-git add images/dashboard.png README.md
-git commit -m "Add dashboard screenshot"
-git push
-```
-
-To add all new project images:
-
-```powershell
-git add images/
-```
 
 ## Technologies Used
 
@@ -150,10 +71,7 @@ git add images/
 - Chart.js
 - Browser Local Storage
 
-## Data Fields
 
-Each branch contains:
-- Browser local storage
 
 ## Data Fields
 
@@ -169,14 +87,7 @@ Branch data is saved only in the current browser. Clearing browser storage or ch
 
 The charts use Chart.js from a CDN, so an internet connection may be needed for charts to load.
 
-## Future Improvements
 
-- Add monthly and yearly comparisons
-- Add profit-margin calculations
-- Import data from CSV files
-- Add user accounts
-- Add sorting by sales, profit, or customers
-- Add dark mode
 
 ## Limitations
 
