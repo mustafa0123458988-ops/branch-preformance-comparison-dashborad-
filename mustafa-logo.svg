@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 260" role="img" aria-labelledby="title desc">
+  <title id="title">Mustafa logo</title>
+  <desc id="desc">A navy and coral logo featuring an M monogram and the name Mustafa.</desc>
+  <rect width="900" height="260" rx="28" fill="#29204d"/>
+  <rect x="38" y="38" width="184" height="184" rx="24" fill="#c85662"/>
+  <path d="M76 176V84h30l24 39 24-39h30v92h-28v-48l-26 40-26-40v48z" fill="#fff8f2"/>
+  <text x="270" y="151" fill="#fff8f2" font-family="Arial, Helvetica, sans-serif" font-size="88" font-weight="700" letter-spacing="3">MUSTAFA</text>
+  <rect x="274" y="178" width="220" height="5" rx="2.5" fill="#e4b34f"/>
+</svg>
