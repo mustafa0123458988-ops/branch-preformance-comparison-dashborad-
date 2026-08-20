@@ -94,10 +94,20 @@
 		function loadData(){
 			try{
 				const saved = JSON.parse(localStorage.getItem('branches') || '[]');
-				return Array.isArray(saved) ? saved.filter(b=>b && typeof b.name === 'string') : [];
+				return Array.isArray(saved) ? saved.filter(b=>b && typeof b.name === 'string').map(b=>({
+					name: b.name,
+					sales: toNumber(b.sales),
+					profit: toNumber(b.profit),
+					customers: toNumber(b.customers)
+				})) : [];
 			}catch(error){
 				return [];
 			}
+		}
+
+		function toNumber(value){
+			const number = Number(value);
+			return Number.isFinite(number) ? number : 0;
 		}
 
 		function saveBranch(){
@@ -141,7 +151,11 @@
 			document.getElementById('cust').textContent = format(tc);
 			document.getElementById('best').textContent = best;
 
-			// Chart
+			if(typeof Chart === 'undefined'){
+				ch.replaceWith(Object.assign(document.createElement('p'), { textContent: 'Chart unavailable. Check your internet connection and reload the page.' }));
+				return;
+			}
+
 			const labels = data.map(d=>d.name);
 			const salesData = data.map(d=>d.sales);
 			const profitData = data.map(d=>d.profit);
